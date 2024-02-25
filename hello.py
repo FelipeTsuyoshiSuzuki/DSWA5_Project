@@ -1,6 +1,20 @@
-# A very simple Flask Hello World app for you to get started with...
-from flask import Flask
-app = Flask(__name__)
+from flask import Flask, render_template
+app = Flask(__name__,
+            static_url_path='', 
+            static_folder='static',)
+
 @app.route('/')
-def hello_world():
-    return '<p>Hello from Flask!</p><table><tr><td><b>Aluno:</b></td><td>Professor Fabio Teixeira</td></tr><tr><td><b>Prontuário:</b></td><td>PT23820X</td></tr></table>'
+def index():
+    return render_template('home.html')
+
+
+@app.route('/student')
+def student():
+    return render_template('student.html')
+
+
+@app.route('/requisition')
+def requisition():
+    return render_template('requisition.html')
+
+
