@@ -1,33 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Site</title>
+{% extends "base.html" %}
 
-</head>
-<body>
-    <header>
-        <h1>Avaliação contínua: Aula 03</h1>
-    </header>
-    <div id="content">
-        <nav>
-            <ul>
-                <li>
-                    <a href="/">Home</a>
-                </li>
-                <li>
-                    <a href="/student">Identificação</a>
-                </li>
-                <li>
-                <a href="/requisition">Contexto da requisição</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-    <script 
-    type="text/javascript"
-    src={{ url_for('static', filename='js/script.js') }}>
-</script>
-</body>
-</html>
+{% block page_content %}
+<div class="page-header">
+    <h1>Hello World!</h1>
+</div>
+<p>The local date and time is {{ moment(current_time).format('LLL') }}.</p>
+<p>That was {{ moment(current_time).fromNow(refresh=True) }}.</p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{% endblock %}
