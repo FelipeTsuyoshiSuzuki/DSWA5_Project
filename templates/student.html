@@ -1,22 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Site</title>
-    <script src="/templates/js/components.js" type="text/javascript"></script>
-</head>
-<body>
-    <header>
-        <h1>Avaliação contínua: Aula 03</h1>
-    </header>
-    <div id="content">
-        <h2>Aluno: Felipe Tsuyshi Suzuki</h2>
-        <h2>Prontuário: PT301441X</h2>
-        <h2>Instituição: IFSP</h2>
-        <a href="/">Voltar</a>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block body %}
+{{ super() }}
+<div id="content">
+    <h2>Aluno: Felipe Tsuyshi Suzuki</h2>
+    <h2>Prontuário: PT301441X</h2>
+    <h2>Instituição: IFSP</h2>
+</div>
+{% endblock %}
