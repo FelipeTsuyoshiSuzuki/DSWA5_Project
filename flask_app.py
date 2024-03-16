@@ -3,7 +3,7 @@ from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField
+from wtforms import StringField, SubmitField, SelectField, PasswordField
 from wtforms.validators import DataRequired
 
 app = Flask(__name__)
@@ -18,11 +18,16 @@ class NameForm(FlaskForm):
     institution = StringField('Informe a sua Insituição de ensino:', validators=[DataRequired()])
     discipline = SelectField(u'Informe a sua disciplina:', choices=[('dswa5', 'DSWA5'), ('dwba4', 'DWBA4'), ('GPSA5', 'Gestão de projetos')])
     submit = SubmitField('Submit')
+    
+
+class LoginForm(FlaskForm):
+    user = StringField(render_kw = {"placeholder": "Usuário ou e-mail"}, validators = [DataRequired()])
+    password = PasswordField(render_kw = {"placeholder": "Senha"}, validators = [DataRequired()])
+    submit = SubmitField('Enviar')
 
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    current_time = datetime.utcnow()
     form = NameForm()
     if form.validate_on_submit():
         old_name = session.get('name')
@@ -35,30 +40,33 @@ def home():
         session['remote_addr'] = request.remote_addr
         session['host'] = request.host
         return redirect(url_for('home'))
-
+    
     return render_template('home.html', 
-                           form=form, 
-                           name=session.get('name'), 
-                           surname=session.get('surname'),
-                           institution=session.get('institution'),
-                           discipline=session.get('discipline'),
-                           choices=dict(form.discipline.choices),
-                           remote_addr=session.get('remote_addr'),
-                           remote_host=session.get('host'),
-                           current_time=current_time)
+                           form = form, 
+                           name = session.get('name'), 
+                           surname = session.get('surname'),
+                           institution = session.get('institution'),
+                           discipline = session.get('discipline'),
+                           choices = dict(form.discipline.choices),
+                           remote_addr = session.get('remote_addr'),
+                           remote_host = session.get('host'),
+                           current_time = datetime.utcnow())
 
 
-@app.route('/student/<name>/<registration>/<institution>')
-def student(name, registration, institution):
-    return render_template('student.html', name=name, registration=registration, institution=institution)
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        session['user'] = form.user.data
+        return redirect(url_for('loginResponse'))
+    return render_template('login.html',
+                           form = form,
+                           current_time = datetime.utcnow())
+    
 
-
-@app.route('/requisition/<name>')
-def requisition(name):
-    user_agent = request.headers.get('User-Agent')
-    dados = {"navegador": user_agent, "request": request, "name": name}
-    return render_template('requisition.html', dados = dados)
-
+@app.route('/loginResponse')
+def loginResponse():
+    return render_template('login_response.html', user = session['user'], current_time = datetime.utcnow())
 
 @app.errorhandler(404)
 def page_not_found(e):
