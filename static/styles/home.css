@@ -1,0 +1,15 @@
+
+table {
+    width: 100%; /* Largura total da tabela */
+    border-collapse: collapse; /* Mescla as bordas das células */
+    font-family: Arial, sans-serif; /* Fonte do texto */
+    font-size: 14px; /* Tamanho da fonte */
+}
+th, td {
+    padding: 10px; /* Espaçamento interno das células */
+    text-align: left; /* Alinhamento do texto */
+    border-bottom: 1px solid #ddd; /* Borda inferior das células */
+}
+th {
+    background-color: #f2f2f2; /* Cor de fundo dos cabeçalhos */
+}

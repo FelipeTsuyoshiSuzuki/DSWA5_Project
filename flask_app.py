@@ -1,72 +1,57 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+import os
+from flask import Flask, render_template, session, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
-from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, PasswordField
+from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'CHAVE BRABA'
+app.config['SECRET_KEY'] = 'hard to guess string'
+app.config['SQLALCHEMY_DATABASE_URI'] =\
+    'sqlite:///' + os.path.join(basedir, 'data.sqlite')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 bootstrap = Bootstrap(app)
 moment = Moment(app)
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Role %r>' % self.name
+
+
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
 
 class NameForm(FlaskForm):
-    name = StringField('Informe o seu nome', validators=[DataRequired()])
-    surname = StringField('Informe o seu sobrenome:', validators=[DataRequired()])
-    institution = StringField('Informe a sua Insituição de ensino:', validators=[DataRequired()])
-    discipline = SelectField(u'Informe a sua disciplina:', choices=[('dswa5', 'DSWA5'), ('dwba4', 'DWBA4'), ('GPSA5', 'Gestão de projetos')])
+    name = StringField('What is your name?', validators=[DataRequired()])
+    role = SelectField('Role?', choices=[], validators=[DataRequired()])
     submit = SubmitField('Submit')
-    
-
-class LoginForm(FlaskForm):
-    user = StringField(render_kw = {"placeholder": "Usuário ou e-mail"}, validators = [DataRequired()])
-    password = PasswordField(render_kw = {"placeholder": "Senha"}, validators = [DataRequired()])
-    submit = SubmitField('Enviar')
 
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    form = NameForm()
-    if form.validate_on_submit():
-        old_name = session.get('name')
-        if old_name is not None and old_name != form.name.data:
-            flash('Você alterou o seu nome!')
-        session['name'] = form.name.data
-        session['surname'] = form.surname.data
-        session['institution'] = form.institution.data
-        session['discipline'] = form.discipline.data
-        session['remote_addr'] = request.remote_addr
-        session['host'] = request.host
-        return redirect(url_for('home'))
-    
-    return render_template('home.html', 
-                           form = form, 
-                           name = session.get('name'), 
-                           surname = session.get('surname'),
-                           institution = session.get('institution'),
-                           discipline = session.get('discipline'),
-                           choices = dict(form.discipline.choices),
-                           remote_addr = session.get('remote_addr'),
-                           remote_host = session.get('host'),
-                           current_time = datetime.utcnow())
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role)
 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        session['user'] = form.user.data
-        return redirect(url_for('loginResponse'))
-    return render_template('login.html',
-                           form = form,
-                           current_time = datetime.utcnow())
-    
-
-@app.route('/loginResponse')
-def loginResponse():
-    return render_template('login_response.html', user = session['user'], current_time = datetime.utcnow())
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -77,3 +62,31 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    form = NameForm()
+    form.role.choices = [(role.name, role.name) for role in Role.query.all()]
+    user_all = User.query.all();
+    user_count = len(user_all);
+    role_all = set(user.role.name for user in user_all);
+    role_count = len(role_all);
+    print(user_all);
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.name.data).first()
+        if user is None:
+            user_role = Role.query.filter_by(name=form.role.data).first()
+            user = User(username=form.name.data, role=user_role);
+            db.session.add(user)
+            db.session.commit()
+            session['known'] = False
+        else:
+            session['known'] = True
+        session['name'] = form.name.data
+        return redirect(url_for('index'))
+    return render_template('index.html', form=form, name=session.get('name'),
+                           known=session.get('known', False),
+                           user_all=user_all,
+                           user_count=user_count,
+                           role_all=role_all,
+                           role_count=role_count);
