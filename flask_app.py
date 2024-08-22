@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, session, redirect, url_for
+from dotenv import load_dotenv
+from flask import Flask, render_template, session, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
@@ -7,8 +8,15 @@ from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import requests
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+project_folder = os.path.expanduser('~/mysite')
+load_dotenv(os.path.join(project_folder, '.env'))
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+DOMAIN = os.getenv("DOMAIN")
+SEND_MAIL = os.getenv("SEND_MAIL")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
@@ -42,10 +50,30 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 
+
 class NameForm(FlaskForm):
     name = StringField('What is your name?', validators=[DataRequired()])
     role = SelectField('Role?', choices=[], validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+
+
+@app.before_request
+def log_request_info():
+    app.logger.debug('Headers: %s', request.headers)
+    app.logger.debug('Body: %s', request.get_data())
+
+
+
+def send_mail():
+  	return requests.post(
+  		"https://api.mailgun.net/v3/DOMAIN/messages",
+  		auth=("api", SECRET_KEY),
+  		data={"from": f"Felipe Suzuki <mailgun@{DOMAIN}>",
+  			"to": ["felipe.suzuki@aluno.ifsp.edu.br", "flaskaulasweb@zohomail.com"],
+  			"subject": "Hello",
+  			"text": "Testing some Mailgun awesomeness!"})
+
 
 
 @app.shell_context_processor
@@ -79,6 +107,8 @@ def index():
             user = User(username=form.name.data, role=user_role);
             db.session.add(user)
             db.session.commit()
+            log_request_info()
+            send_mail()
             session['known'] = False
         else:
             session['known'] = True
