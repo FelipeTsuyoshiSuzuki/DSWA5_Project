@@ -5,17 +5,29 @@
 
 {% block page_content %}
 <div class="page-header">
+<<<<<<< Updated upstream:templates/index.html
     <h1>Olá, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
     {% if not known %}
     <p>Prazer em conhecê-lo!</p>
+=======
+    <h1>Olá, {% if name %}{{ name }}{% else %}Desconhecido{% endif %}!</h1>
+    {% if not known %}
+    <p>Prazer em conhecê-lo!</p>
+    <p>E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de um novo usuário.</p>
+>>>>>>> Stashed changes:app/templates/index.html
     {% else %}
     <p>Feliz em vê-lo novamente!</p>
     {% endif %}
 </div>
 {{ wtf.quick_form(form) }}
+<<<<<<< Updated upstream:templates/index.html
 <!--
 <h2>Relação de usuários cadastrados</h2>
 <h3>Quantidade: {{ user_count  }}</h3>
+=======
+
+<h2>Relação de usuários cadastrados</h2>
+>>>>>>> Stashed changes:app/templates/index.html
 <table class="table">
     <thead>
         <tr>
@@ -24,15 +36,23 @@
         </tr>
     </thead>
     <tbody>
+<<<<<<< Updated upstream:templates/index.html
         {% for key in user_all %}
         <tr>
             <td>{{ key.username }}</td>
             <td>{{ key.role.name }}</td>
+=======
+        {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role.name }}</td>
+>>>>>>> Stashed changes:app/templates/index.html
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
+<<<<<<< Updated upstream:templates/index.html
 <h2>Relação de funções cadastradas</h2>
 <h3>Quantidade: {{ role_count }}</h3>
 <table class="table">
@@ -58,4 +78,6 @@
     </tbody>
 </table>
 -->
+=======
+>>>>>>> Stashed changes:app/templates/index.html
 {% endblock %}
